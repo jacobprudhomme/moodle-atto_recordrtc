@@ -333,6 +333,46 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
         },
 
         /**
+         * Whether or not to use premium recording service.
+         *
+         * @attribute premiumservice
+         * @type Boolean
+         */
+        premiumservice: {
+            value: null
+        },
+
+        /**
+         * The URL of the premium recording server.
+         *
+         * @attribute serverurl
+         * @type String
+         */
+        serverurl: {
+            value: null
+        },
+
+        /**
+         * The API key for the premium recording service.
+         *
+         * @attribute apikey
+         * @type String
+         */
+        apikey: {
+            value: null
+        },
+
+        /**
+         * The API shared secret for the premium recording service.
+         *
+         * @attribute apisecret
+         * @type String
+         */
+        apisecret: {
+            value: null
+        },
+
+        /**
          * The audiortcicon to use when generating this recordrtc.
          *
          * @attribute audiortcicon

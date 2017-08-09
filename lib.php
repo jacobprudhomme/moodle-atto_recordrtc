@@ -51,6 +51,10 @@ function atto_recordrtc_params_for_js($elementid, $options, $fpoptions) {
     $audiobitrate = get_config('atto_recordrtc', 'audiobitrate');
     $videobitrate = get_config('atto_recordrtc', 'videobitrate');
     $timelimit = get_config('atto_recordrtc', 'timelimit');
+    $premiumservice = get_config('atto_recordrtc', 'premiumservice');
+    $serverurl = get_config('atto_recordrtc', 'serverurl');
+    $apikey = get_config('atto_recordrtc', 'apikey');
+    $apisecret = get_config('atto_recordrtc', 'apisecret');
     $audiortcicon = 'ed/audiortc';
     $videortcicon = 'ed/videortc';
     $maxrecsize = ini_get('upload_max_filesize');
@@ -65,6 +69,10 @@ function atto_recordrtc_params_for_js($elementid, $options, $fpoptions) {
                     'audiobitrate' => $audiobitrate,
                     'videobitrate' => $videobitrate,
                     'timelimit' => $timelimit,
+                    'premiumservice' => $premiumservice,
+                    'serverurl' => $serverurl,
+                    'apikey' => $apikey,
+                    'apisecret' => $apisecret,
                     'audiortcicon' => $audiortcicon,
                     'videortcicon' => $videortcicon,
                     'oldermoodle' => $moodleversion < $moodle32,
