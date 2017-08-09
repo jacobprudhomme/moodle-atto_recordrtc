@@ -1,0 +1,12 @@
+{
+    "name": "moodle-atto_recordrtc-premiumrecording",
+    "builds": {
+        "moodle-atto_recordrtc-premiumrecording": {
+            "jsfiles": [
+                "premiumcommonmodule.js",
+                "premiumaudiomodule.js",
+                "premiumvideomodule.js"
+            ]
+        }
+    }
+}
