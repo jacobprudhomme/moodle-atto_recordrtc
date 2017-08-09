@@ -117,12 +117,19 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
 
         // If dialogue is closed during recording, do the following.
         dialogue.on('visibleChange', function() {
+            // Disconnect the socket.
+            if (M.atto_recordrtc.premiumcommonmodule.socket) {
+                M.atto_recordrtc.premiumcommonmodule.socket.disconnect(true);
+            }
+
             // Clear the countdown timer.
             window.clearInterval(M.atto_recordrtc.commonmodule.countdownTicker);
 
             // Stop the media recorder.
             if (M.atto_recordrtc.commonmodule.mediaRecorder && M.atto_recordrtc.commonmodule.mediaRecorder.state !== 'inactive') {
                 M.atto_recordrtc.commonmodule.mediaRecorder.stop();
+            } else if (M.atto_recordrtc.premiumcommonmodule.mediaRecorder && M.atto_recordrtc.premiumcommonmodule.mediaRecorder.state !== 'inactive') {
+                M.atto_recordrtc.premiumcommonmodule.mediaRecorder.stop();
             }
 
             // Stop the getUserMedia audio/video tracks.
@@ -132,7 +139,24 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
                         track.stop();
                     }
                 });
+            } else if (M.atto_recordrtc.premiumcommonmodule.stream) {
+                M.atto_recordrtc.premiumcommonmodule.stream.getTracks().forEach(function(track) {
+                    if (track.readyState !== 'ended') {
+                        track.stop();
+                    }
+                });
             }
+        });
+
+        // Require Bowser, adapter.js and Socket.io libraries.
+        require(['atto_recordrtc/bowser'], function(bowser) {
+            window.bowser = bowser;
+        });
+        require(['atto_recordrtc/adapter'], function(adapter) {
+            window.adapter = adapter;
+        });
+        require(['atto_recordrtc/socket.io'], function(io) {
+            window.io = io;
         });
     },
 
@@ -169,7 +193,11 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
 
         dialogue.show();
 
-        M.atto_recordrtc.audiomodule.init(this);
+        if (this.get('premiumservice') === '1') {
+            M.atto_recordrtc.premiumaudiomodule.init(this);
+        } else {
+            M.atto_recordrtc.audiomodule.init(this);
+        }
     },
 
     /**
@@ -187,7 +215,11 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
 
         dialogue.show();
 
-        M.atto_recordrtc.videomodule.init(this);
+        if (this.get('premiumservice') === '1') {
+            M.atto_recordrtc.premiumvideomodule.init(this);
+        } else {
+            M.atto_recordrtc.videomodule.init(this);
+        }
     },
 
     /**
@@ -324,6 +356,46 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
         },
 
         /**
+         * Whether or not to use premium recording service.
+         *
+         * @attribute premiumservice
+         * @type Boolean
+         */
+        premiumservice: {
+            value: null
+        },
+
+        /**
+         * The URL of the premium recording server.
+         *
+         * @attribute serverurl
+         * @type String
+         */
+        serverurl: {
+            value: null
+        },
+
+        /**
+         * The API key for the premium recording service.
+         *
+         * @attribute apikey
+         * @type String
+         */
+        apikey: {
+            value: null
+        },
+
+        /**
+         * The API shared secret for the premium recording service.
+         *
+         * @attribute apisecret
+         * @type String
+         */
+        apisecret: {
+            value: null
+        },
+
+        /**
          * The audiortcicon to use when generating this recordrtc.
          *
          * @attribute audiortcicon
@@ -366,4 +438,10 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
 });
 
 
-}, '@VERSION@', {"requires": ["moodle-editor_atto-plugin", "moodle-atto_recordrtc-recording"]});
+}, '@VERSION@', {
+    "requires": [
+        "moodle-editor_atto-plugin",
+        "moodle-atto_recordrtc-recording",
+        "moodle-atto_recordrtc-premiumrecording"
+    ]
+});
