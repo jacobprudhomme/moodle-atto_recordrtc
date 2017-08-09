@@ -178,7 +178,11 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
 
         dialogue.show();
 
-        M.atto_recordrtc.audiomodule.init(this);
+        if (this.get('premiumservice') === '1') {
+            M.atto_recordrtc.premiumaudiomodule.init(this);
+        } else {
+            M.atto_recordrtc.audiomodule.init(this);
+        }
     },
 
     /**
@@ -196,7 +200,11 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
 
         dialogue.show();
 
-        M.atto_recordrtc.videomodule.init(this);
+        if (this.get('premiumservice') === '1') {
+            M.atto_recordrtc.premiumvideomodule.init(this);
+        } else {
+            M.atto_recordrtc.videomodule.init(this);
+        }
     },
 
     /**
