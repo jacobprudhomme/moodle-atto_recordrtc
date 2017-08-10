@@ -63,7 +63,7 @@ M.atto_recordrtc.premiumhelpermodule = {
                 // Continue as normal.
             });
 
-            hm.socket.on('unauthorized', function(err) {
+            hm.socket.on('unauthorized', function() {
                 cm.show_alert('notpremium', closeDialogue);
             });
         });
@@ -81,7 +81,7 @@ M.atto_recordrtc.premiumhelpermodule = {
     },
 
     // Stop recording and handle end.
-    handle_stop: function(event) {
+    handle_stop: function() {
         cm.startStopBtn.set('textContent', 'Start Recording');
 
         hm.socket.emit('recording stopped');
