@@ -1,3 +1,5 @@
+YUI.add('moodle-atto_recordrtc-recordingcommon', function (Y, NAME) {
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -37,9 +39,9 @@
 M.atto_recordrtc = M.atto_recordrtc || {};
 
 // Shorten access to module namespaces.
-var cm = M.atto_recordrtc.premiumcommonmodule;
+var cm = M.atto_recordrtc.commonmodule;
 
-M.atto_recordrtc.premiumcommonmodule = {
+M.atto_recordrtc.commonmodule = {
     // Unitialized variables to be used by the other modules.
     editorScope: null,
     alertWarning: null,
@@ -123,3 +125,6 @@ M.atto_recordrtc.premiumcommonmodule = {
         }
     }
 };
+
+
+}, '@VERSION@', {"requires": ["moodle-atto_recordrtc-button"]});

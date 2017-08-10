@@ -36,12 +36,15 @@
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
-// Shorten access to module namespaces.
-var cm = M.atto_recordrtc.premiumcommonmodule,
-    hm = M.atto_recordrtc.premiumhelpermodule;
+var cm = null,
+    hm = null;
 
 M.atto_recordrtc.premiumaudiomodule = {
     init: function(scope) {
+        // Shorten access to module namespaces.
+        cm = M.atto_recordrtc.commonmodule;
+        hm = M.atto_recordrtc.premiumhelpermodule;
+
         // Assignment of global variables.
         cm.editorScope = scope; // Allows access to the editor's "this" context.
         cm.alertWarning = Y.one('div#alert-warning');

@@ -36,7 +36,7 @@
 M.atto_recordrtc = M.atto_recordrtc || {};
 
 // Shorten access to module namespaces.
-var cm = M.atto_recordrtc.premiumcommonmodule,
+var cm = M.atto_recordrtc.commonmodule,
     hm = M.atto_recordrtc.premiumhelpermodule;
 
 M.atto_recordrtc.premiumhelpermodule = {
