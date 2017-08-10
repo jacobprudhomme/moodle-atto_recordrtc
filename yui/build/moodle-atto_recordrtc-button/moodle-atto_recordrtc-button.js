@@ -126,7 +126,7 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
             if (closed) {
                 if (premium) {
                     // Disconnect the socket.
-                    cm.socket.disconnect(true);
+                    hm.socket.disconnect(true);
                 } else {
                     // Clear the countdown timer.
                     window.clearInterval(hm.countdownTicker);
