@@ -695,4 +695,4 @@ M.atto_recordrtc.videomodule = {
 };
 
 
-}, '@VERSION@', {"requires": ["moodle-atto_recordrtc-button"]});
+}, '@VERSION@', {"requires": ["moodle-atto_recordrtc-button", "moodle-atto_recordrtc-recordingcommon"]});

@@ -1,7 +1,8 @@
 {
     "moodle-atto_recordrtc-recording": {
         "requires": [
-            "moodle-atto_recordrtc-button"
+            "moodle-atto_recordrtc-button",
+            "moodle-atto_recordrtc-recordingcommon"
         ]
     }
 }
