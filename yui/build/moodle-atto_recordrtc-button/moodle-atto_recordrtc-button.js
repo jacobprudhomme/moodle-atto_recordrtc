@@ -120,7 +120,7 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
         dialogue.after('visibleChange', function() {
             var closed = !dialogue.get('visible'),
                 premium = editor.get('premiumservice') === '1',
-                cm = M.atto_recordrtc.commonmodule,
+                cm = premium ? M.atto_recordrtc.premiumcommonmodule : M.atto_recordrtc.commonmodule,
                 hm = premium ? M.atto_recordrtc.premiumhelpermodule : M.atto_recordrtc.helpermodule;
 
             if (closed) {
@@ -439,7 +439,6 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
 }, '@VERSION@', {
     "requires": [
         "moodle-editor_atto-plugin",
-        "moodle-atto_recordrtc-recordingcommon",
         "moodle-atto_recordrtc-recording",
         "moodle-atto_recordrtc-recordingpremium"
     ]

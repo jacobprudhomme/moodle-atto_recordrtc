@@ -36,8 +36,8 @@
 M.atto_recordrtc = M.atto_recordrtc || {};
 
 // Shorten access to module namespaces.
-var cm = M.atto_recordrtc.commonmodule;
-var hm = M.atto_recordrtc.helpermodule;
+var cm = M.atto_recordrtc.commonmodule,
+    hm = M.atto_recordrtc.helpermodule;
 
 M.atto_recordrtc.helpermodule = {
     // Unitialized variables to be used by the other modules.

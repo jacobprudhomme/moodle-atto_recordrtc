@@ -3,6 +3,7 @@
     "builds": {
         "moodle-atto_recordrtc-recordingpremium": {
             "jsfiles": [
+                "premiumcommonmodule.js",
                 "premiumhelpermodule.js",
                 "premiumaudiomodule.js",
                 "premiumvideomodule.js"

@@ -37,8 +37,8 @@
 M.atto_recordrtc = M.atto_recordrtc || {};
 
 // Shorten access to module namespaces.
-var cm = M.atto_recordrtc.commonmodule;
-var hm = M.atto_recordrtc.premiumhelpermodule;
+var cm = M.atto_recordrtc.premiumcommonmodule,
+    hm = M.atto_recordrtc.premiumhelpermodule;
 
 M.atto_recordrtc.premiumvideomodule = {
     init: function(scope) {
