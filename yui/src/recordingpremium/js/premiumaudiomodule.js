@@ -36,46 +36,47 @@
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
-// Shorten access to M.atto_recordrtc.commonmodule namespace.
-var pcm = M.atto_recordrtc.premiumcommonmodule;
+// Shorten access to module namespaces.
+var cm = M.atto_recordrtc.commonmodule;
+var hm = M.atto_recordrtc.premiumhelpermodule;
 
 M.atto_recordrtc.premiumaudiomodule = {
     init: function(scope) {
         // Assignment of global variables.
-        pcm.editorScope = scope; // Allows access to the editor's "this" context.
-        pcm.alertWarning = Y.one('div#alert-warning');
-        pcm.alertDanger = Y.one('div#alert-danger');
-        pcm.player = Y.one('audio#player');
-        pcm.playerDOM = document.querySelector('audio#player');
-        pcm.startStopBtn = Y.one('button#start-stop');
-        pcm.uploadBtn = Y.one('button#upload');
-        pcm.recType = 'audio';
-        pcm.olderMoodle = scope.get('oldermoodle');
-        pcm.socket = window.io(pcm.editorScope.get('serverurl'));
+        cm.editorScope = scope; // Allows access to the editor's "this" context.
+        cm.alertWarning = Y.one('div#alert-warning');
+        cm.alertDanger = Y.one('div#alert-danger');
+        cm.player = Y.one('audio#player');
+        cm.playerDOM = document.querySelector('audio#player');
+        cm.startStopBtn = Y.one('button#start-stop');
+        cm.uploadBtn = Y.one('button#upload');
+        cm.recType = 'audio';
+        cm.olderMoodle = scope.get('oldermoodle');
+        hm.socket = window.io(cm.editorScope.get('serverurl'));
 
         // Show alert and redirect user if connection is not secure.
-        pcm.check_secure();
+        cm.check_secure();
         // Show alert if using non-ideal browser.
-        pcm.check_browser();
+        cm.check_browser();
 
         // Connect to premium recording server.
-        pcm.init_connection();
+        hm.init_connection();
 
         // Run when user clicks on "record" button.
-        pcm.startStopBtn.on('click', function() {
-            pcm.startStopBtn.set('disabled', true);
+        cm.startStopBtn.on('click', function() {
+            cm.startStopBtn.set('disabled', true);
 
             // If button is displaying "Start Recording" or "Record Again".
-            if ((pcm.startStopBtn.get('textContent') === M.util.get_string('startrecording', 'atto_recordrtc')) ||
-                (pcm.startStopBtn.get('textContent') === M.util.get_string('recordagain', 'atto_recordrtc')) ||
-                (pcm.startStopBtn.get('textContent') === M.util.get_string('recordingfailed', 'atto_recordrtc'))) {
+            if ((cm.startStopBtn.get('textContent') === M.util.get_string('startrecording', 'atto_recordrtc')) ||
+                (cm.startStopBtn.get('textContent') === M.util.get_string('recordagain', 'atto_recordrtc')) ||
+                (cm.startStopBtn.get('textContent') === M.util.get_string('recordingfailed', 'atto_recordrtc'))) {
                 // Make sure the audio player and upload button are not shown.
-                pcm.player.ancestor().ancestor().addClass('hide');
-                pcm.uploadBtn.ancestor().ancestor().addClass('hide');
+                cm.player.ancestor().ancestor().addClass('hide');
+                cm.uploadBtn.ancestor().ancestor().addClass('hide');
 
                 // Change look of recording button.
-                if (!pcm.olderMoodle) {
-                    pcm.startStopBtn.replaceClass('btn-outline-danger', 'btn-danger');
+                if (!cm.olderMoodle) {
+                    cm.startStopBtn.replaceClass('btn-outline-danger', 'btn-danger');
                 }
 
                 // Initialize common configurations.
@@ -83,17 +84,17 @@ M.atto_recordrtc.premiumaudiomodule = {
                     // When the stream is captured from the microphone/webcam.
                     onMediaCaptured: function(stream) {
                         // Make audio stream available at a higher level by making it a property of the common module.
-                        pcm.stream = stream;
+                        cm.stream = stream;
 
-                        pcm.start_recording(pcm.recType, pcm.stream);
+                        hm.start_recording(cm.recType, cm.stream);
                     },
 
                     // Revert button to "Record Again" when recording is stopped.
                     onMediaStopped: function(btnLabel) {
-                        pcm.startStopBtn.set('textContent', btnLabel);
-                        pcm.startStopBtn.set('disabled', false);
-                        if (!pcm.olderMoodle) {
-                            pcm.startStopBtn.replaceClass('btn-danger', 'btn-outline-danger');
+                        cm.startStopBtn.set('textContent', btnLabel);
+                        cm.startStopBtn.set('disabled', false);
+                        if (!cm.olderMoodle) {
+                            cm.startStopBtn.replaceClass('btn-danger', 'btn-outline-danger');
                         }
                     },
 
@@ -108,33 +109,33 @@ M.atto_recordrtc.premiumaudiomodule = {
                         // After alert, proceed to treat as stopped recording, or close dialogue.
                         switch (error.name) {
                             case 'AbortError':
-                                pcm.show_alert('gumabort', treatAsStopped);
+                                cm.show_alert('gumabort', treatAsStopped);
 
                                 break;
                             case 'NotAllowedError':
-                                pcm.show_alert('gumnotallowed', treatAsStopped);
+                                cm.show_alert('gumnotallowed', treatAsStopped);
 
                                 break;
                             case 'NotFoundError':
-                                pcm.show_alert('gumnotfound', treatAsStopped);
+                                cm.show_alert('gumnotfound', treatAsStopped);
 
                                 break;
                             case 'NotReadableError':
-                                pcm.show_alert('gumnotreadable', treatAsStopped);
+                                cm.show_alert('gumnotreadable', treatAsStopped);
 
                                 break;
                             case 'OverConstrainedError':
-                                pcm.show_alert('gumoverconstrained', treatAsStopped);
+                                cm.show_alert('gumoverconstrained', treatAsStopped);
 
                                 break;
                             case 'SecurityError':
-                                pcm.show_alert('gumsecurity', function() {
-                                    pcm.editorScope.closeDialogue(pcm.editorScope);
+                                cm.show_alert('gumsecurity', function() {
+                                    cm.editorScope.closeDialogue(cm.editorScope);
                                 });
 
                                 break;
                             case 'TypeError':
-                                pcm.show_alert('gumtype', treatAsStopped);
+                                cm.show_alert('gumtype', treatAsStopped);
 
                                 break;
                             default:
@@ -148,16 +149,16 @@ M.atto_recordrtc.premiumaudiomodule = {
             } else { // If button is displaying "Stop Recording".
                 // Disable "Record Again" button for 1s to allow background processing (closing streams).
                 window.setTimeout(function() {
-                    pcm.startStopBtn.set('disabled', false);
+                    cm.startStopBtn.set('disabled', false);
                 }, 1000);
 
                 // Stop recording.
-                M.atto_recordrtc.premiumaudiomodule.stop_recording(pcm.stream);
+                M.atto_recordrtc.premiumaudiomodule.stop_recording(cm.stream);
 
                 // Change button to offer to record again.
-                pcm.startStopBtn.set('textContent', M.util.get_string('recordagain', 'atto_recordrtc'));
-                if (!pcm.olderMoodle) {
-                    pcm.startStopBtn.replaceClass('btn-danger', 'btn-outline-danger');
+                cm.startStopBtn.set('textContent', M.util.get_string('recordagain', 'atto_recordrtc'));
+                if (!cm.olderMoodle) {
+                    cm.startStopBtn.replaceClass('btn-danger', 'btn-outline-danger');
                 }
             }
         });
@@ -165,7 +166,7 @@ M.atto_recordrtc.premiumaudiomodule = {
 
     // Setup to get audio stream from microphone.
     capture_audio: function(config) {
-        pcm.capture_user_media(
+        cm.capture_user_media(
             // Media constraints.
             {
                 audio: true
@@ -174,7 +175,7 @@ M.atto_recordrtc.premiumaudiomodule = {
             // Success callback.
             function(audioStream) {
                 // Set audio player source to microphone stream.
-                pcm.playerDOM.srcObject = audioStream;
+                cm.playerDOM.srcObject = audioStream;
 
                 config.onMediaCaptured(audioStream);
             },
@@ -188,28 +189,11 @@ M.atto_recordrtc.premiumaudiomodule = {
 
     stop_recording: function(stream) {
         // Stop recording microphone stream.
-        pcm.mediaRecorder.stop();
+        cm.mediaRecorder.stop();
 
         // Stop each individual MediaTrack.
         stream.getTracks().forEach(function(track) {
             track.stop();
-        });
-
-        // Show upload button.
-        pcm.uploadBtn.ancestor().ancestor().removeClass('hide');
-        pcm.uploadBtn.set('textContent', M.util.get_string('attachrecording', 'atto_recordrtc'));
-        pcm.uploadBtn.set('disabled', false);
-
-        // Handle when upload button is clicked.
-        pcm.uploadBtn.on('click', function() {
-            // Trigger error if no recording has been made.
-            if (!pcm.player.get('src')) {
-                pcm.show_alert('norecordingfound');
-            } else {
-                pcm.uploadBtn.set('disabled', true);
-
-                pcm.insert_annotation(pcm.recType, pcm.player.get('src'));
-            }
         });
     }
 };

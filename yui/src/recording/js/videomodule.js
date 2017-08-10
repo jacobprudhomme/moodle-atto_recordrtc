@@ -36,8 +36,9 @@
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
-// Shorten access to M.atto_recordrtc.commonmodule namespace.
+// Shorten access to module namespaces.
 var cm = M.atto_recordrtc.commonmodule;
+var hm = M.atto_recordrtc.helpermodule;
 
 M.atto_recordrtc.videomodule = {
     init: function(scope) {
@@ -52,7 +53,7 @@ M.atto_recordrtc.videomodule = {
         cm.recType = 'video';
         cm.olderMoodle = scope.get('oldermoodle');
         // Extract the numbers from the string, and convert to bytes.
-        cm.maxUploadSize = window.parseInt(scope.get('maxrecsize').match(/\d+/)[0], 10) * Math.pow(1024, 2);
+        hm.maxUploadSize = window.parseInt(scope.get('maxrecsize').match(/\d+/)[0], 10) * Math.pow(1024, 2);
 
         // Show alert and redirect user if connection is not secure.
         cm.check_secure();
@@ -76,8 +77,8 @@ M.atto_recordrtc.videomodule = {
                 }
 
                 // Empty the array containing the previously recorded chunks.
-                cm.chunks = [];
-                cm.blobSize = 0;
+                hm.chunks = [];
+                hm.blobSize = 0;
 
                 // Initialize common configurations.
                 var commonConfig = {
@@ -86,7 +87,7 @@ M.atto_recordrtc.videomodule = {
                         // Make video stream available at a higher level by making it a property of the common module.
                         cm.stream = stream;
 
-                        cm.start_recording(cm.recType, cm.stream);
+                        hm.start_recording(cm.recType, cm.stream);
                     },
 
                     // Revert button to "Record Again" when recording is stopped.
@@ -152,7 +153,7 @@ M.atto_recordrtc.videomodule = {
                 M.atto_recordrtc.videomodule.capture_audio_video(commonConfig);
             } else { // If button is displaying "Stop Recording".
                 // First of all clears the countdownTicker.
-                window.clearInterval(cm.countdownTicker);
+                window.clearInterval(hm.countdownTicker);
 
                 // Disable "Record Again" button for 1s to allow background processing (closing streams).
                 window.setTimeout(function() {
@@ -206,50 +207,6 @@ M.atto_recordrtc.videomodule = {
         // Stop each individual MediaTrack.
         stream.getTracks().forEach(function(track) {
             track.stop();
-        });
-
-        // Set source of video player.
-        var blob = new window.Blob(cm.chunks, {type: cm.mediaRecorder.mimeType});
-        cm.player.set('src', window.URL.createObjectURL(blob));
-
-        // Enable controls for video player, and unmute.
-        cm.player.set('muted', false);
-        cm.player.set('controls', true);
-
-        // Show upload button.
-        cm.uploadBtn.ancestor().ancestor().removeClass('hide');
-        cm.uploadBtn.set('textContent', M.util.get_string('attachrecording', 'atto_recordrtc'));
-        cm.uploadBtn.set('disabled', false);
-
-        // Handle when upload button is clicked.
-        cm.uploadBtn.on('click', function() {
-            // Trigger error if no recording has been made.
-            if (!cm.player.get('src') || cm.chunks === []) {
-                cm.show_alert('norecordingfound');
-            } else {
-                cm.uploadBtn.set('disabled', true);
-
-                // Upload recording to server.
-                cm.upload_to_server(cm.recType, function(progress, fileURLOrError) {
-                    if (progress === 'ended') { // Insert annotation in text.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.insert_annotation(cm.recType, fileURLOrError);
-                    } else if (progress === 'upload-failed') { // Show error message in upload button.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent',
-                            M.util.get_string('uploadfailed', 'atto_recordrtc') + ' ' + fileURLOrError);
-                    } else if (progress === 'upload-failed-404') { // 404 error = File too large in Moodle.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent', M.util.get_string('uploadfailed404', 'atto_recordrtc'));
-                    } else if (progress === 'upload-aborted') {
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent',
-                            M.util.get_string('uploadaborted', 'atto_recordrtc') + ' ' + fileURLOrError);
-                    } else {
-                        cm.uploadBtn.set('textContent', progress);
-                    }
-                });
-            }
         });
     }
 };

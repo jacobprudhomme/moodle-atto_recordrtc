@@ -34,93 +34,87 @@ YUI.add('moodle-atto_recordrtc-recording', function (Y, NAME) {
 
 // Scrutinizer CI directives.
 /** global: M */
-/** global: Y */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
-// Shorten access to M.atto_recordrtc.commonmodule namespace.
+// Shorten access to module namespaces.
 var cm = M.atto_recordrtc.commonmodule;
+var hm = M.atto_recordrtc.helpermodule;
 
-M.atto_recordrtc.commonmodule = {
+M.atto_recordrtc.helpermodule = {
     // Unitialized variables to be used by the other modules.
-    editorScope: null,
-    alertWarning: null,
-    alertDanger: null,
-    player: null,
-    playerDOM: null, // Used to manipulate DOM directly.
-    startStopBtn: null,
-    uploadBtn: null,
+    blobSize: null,
+    chunks: null,
     countdownSeconds: null,
     countdownTicker: null,
-    recType: null,
-    stream: null,
-    mediaRecorder: null,
-    chunks: null,
-    blobSize: null,
-    olderMoodle: null,
     maxUploadSize: null,
-
-    // A helper for making a Moodle alert appear.
-    // Subject is the content of the alert (which error ther alert is for).
-    // Possibility to add on-alert-close event.
-    show_alert: function(subject, onCloseEvent) {
-        Y.use('moodle-core-notification-alert', function() {
-            var dialogue = new M.core.alert({
-                title: M.util.get_string(subject + '_title', 'atto_recordrtc'),
-                message: M.util.get_string(subject, 'atto_recordrtc')
-            });
-
-            if (onCloseEvent) {
-                dialogue.after('complete', onCloseEvent);
-            }
-        });
-    },
-
-    // Notify and redirect user if plugin is used from insecure location.
-    check_secure: function() {
-        var isSecureOrigin = (window.location.protocol === 'https:') ||
-                             (window.location.host.indexOf('localhost') !== -1);
-
-        if (!isSecureOrigin) {
-            cm.alertDanger.ancestor().ancestor().removeClass('hide');
-        }
-    },
-
-    // Display "consider switching browsers" message if not using:
-    // - Firefox 29+;
-    // - Chrome 49+;
-    // - Opera 36+.
-    check_browser: function() {
-        if (!((window.bowser.firefox && window.bowser.version >= 29) ||
-              (window.bowser.chrome && window.bowser.version >= 49) ||
-              (window.bowser.opera && window.bowser.version >= 36))) {
-            cm.alertWarning.ancestor().ancestor().removeClass('hide');
-        }
-    },
-
-    // Capture webcam/microphone stream.
-    capture_user_media: function(mediaConstraints, successCallback, errorCallback) {
-        window.navigator.mediaDevices.getUserMedia(mediaConstraints).then(successCallback).catch(errorCallback);
-    },
 
     // Add chunks of audio/video to array when made available.
     handle_data_available: function(event) {
         // Size of all recorded data so far.
-        cm.blobSize += event.data.size;
+        hm.blobSize += event.data.size;
 
         // Push recording slice to array.
         // If total size of recording so far exceeds max upload limit, stop recording.
         // An extra condition exists to avoid displaying alert twice.
-        if ((cm.blobSize >= cm.maxUploadSize) && (!window.localStorage.getItem('alerted'))) {
+        if ((hm.blobSize >= hm.maxUploadSize) && (!window.localStorage.getItem('alerted'))) {
             window.localStorage.setItem('alerted', 'true');
 
             cm.startStopBtn.simulate('click');
             cm.show_alert('nearingmaxsize');
-        } else if ((cm.blobSize >= cm.maxUploadSize) && (window.localStorage.getItem('alerted') === 'true')) {
+        } else if ((hm.blobSize >= hm.maxUploadSize) && (window.localStorage.getItem('alerted') === 'true')) {
             window.localStorage.removeItem('alerted');
         } else {
-            cm.chunks.push(event.data);
+            hm.chunks.push(event.data);
         }
+    },
+
+    // Handle recording end.
+    handle_stop: function() {
+        // Set source of audio player.
+        var blob = new window.Blob(hm.chunks, {type: cm.mediaRecorder.mimeType});
+        cm.player.set('src', window.URL.createObjectURL(blob));
+
+        // Show audio player with controls enabled, and unmute.
+        cm.player.set('muted', false);
+        cm.player.set('controls', true);
+        cm.player.ancestor().ancestor().removeClass('hide'); // Only audio player is hidden at this point.
+
+        // Show upload button.
+        cm.uploadBtn.set('disabled', false);
+        cm.uploadBtn.set('textContent', M.util.get_string('attachrecording', 'atto_recordrtc'));
+        cm.uploadBtn.ancestor().ancestor().removeClass('hide');
+
+        // Handle when upload button is clicked.
+        cm.uploadBtn.on('click', function() {
+            // Trigger error if no recording has been made.
+            if (!cm.player.get('src') || hm.chunks === []) {
+                cm.show_alert('norecordingfound');
+            } else {
+                cm.uploadBtn.set('disabled', true);
+
+                // Upload recording to server.
+                hm.upload_to_server(cm.recType, function(progress, fileURLOrError) {
+                    if (progress === 'ended') { // Insert annotation in text.
+                        cm.uploadBtn.set('disabled', false);
+                        cm.insert_annotation(cm.recType, fileURLOrError);
+                    } else if (progress === 'upload-failed') { // Show error message in upload button.
+                        cm.uploadBtn.set('disabled', false);
+                        cm.uploadBtn.set('textContent',
+                            M.util.get_string('uploadfailed', 'atto_recordrtc') + ' ' + fileURLOrError);
+                    } else if (progress === 'upload-failed-404') { // 404 error = File too large in Moodle.
+                        cm.uploadBtn.set('disabled', false);
+                        cm.uploadBtn.set('textContent', M.util.get_string('uploadfailed404', 'atto_recordrtc'));
+                    } else if (progress === 'upload-aborted') {
+                        cm.uploadBtn.set('disabled', false);
+                        cm.uploadBtn.set('textContent',
+                            M.util.get_string('uploadaborted', 'atto_recordrtc') + ' ' + fileURLOrError);
+                    } else {
+                        cm.uploadBtn.set('textContent', progress);
+                    }
+                });
+            }
+        });
     },
 
     // Get everything set up to start recording.
@@ -166,20 +160,21 @@ M.atto_recordrtc.commonmodule = {
                                    : new window.MediaRecorder(stream);
 
         // Initialize MediaRecorder events and start recording.
-        cm.mediaRecorder.ondataavailable = cm.handle_data_available;
+        cm.mediaRecorder.ondataavailable = hm.handle_data_available;
+        cm.mediaRecorder.onstop = hm.handle_stop;
         cm.mediaRecorder.start(1000); // Capture in 1s chunks. Must be set to work with Firefox.
 
         // Mute audio, distracting while recording.
         cm.player.set('muted', true);
 
         // Set recording timer to the time specified in the settings.
-        cm.countdownSeconds = cm.editorScope.get('timelimit');
-        cm.countdownSeconds++;
+        hm.countdownSeconds = cm.editorScope.get('timelimit');
+        hm.countdownSeconds++;
         var timerText = M.util.get_string('stoprecording', 'atto_recordrtc');
         timerText += ' (<span id="minutes"></span>:<span id="seconds"></span>)';
         cm.startStopBtn.setHTML(timerText);
-        cm.set_time();
-        cm.countdownTicker = window.setInterval(cm.set_time, 1000);
+        hm.set_time();
+        hm.countdownTicker = window.setInterval(hm.set_time, 1000);
 
         // Make button clickable again, to allow stopping recording.
         cm.startStopBtn.set('disabled', false);
@@ -214,7 +209,7 @@ M.atto_recordrtc.commonmodule = {
                 formData.append(type + '-blob', blob);
 
                 // Pass FormData to PHP script using XHR.
-                cm.make_xmlhttprequest(cm.editorScope.get('recordrtcroot') + 'save.php', formData,
+                hm.make_xmlhttprequest(cm.editorScope.get('recordrtcroot') + 'save.php', formData,
                     function(progress, responseText) {
                         if (progress === 'upload-ended') {
                             var initialURL = cm.editorScope.get('recordrtcroot') + 'uploads.php/';
@@ -272,40 +267,13 @@ M.atto_recordrtc.commonmodule = {
     // Functionality to make recording timer count down.
     // Also makes recording stop when time limit is hit.
     set_time: function() {
-        cm.countdownSeconds--;
+        hm.countdownSeconds--;
 
-        cm.startStopBtn.one('span#seconds').set('textContent', cm.pad(cm.countdownSeconds % 60));
-        cm.startStopBtn.one('span#minutes').set('textContent', cm.pad(window.parseInt(cm.countdownSeconds / 60, 10)));
+        cm.startStopBtn.one('span#seconds').set('textContent', hm.pad(hm.countdownSeconds % 60));
+        cm.startStopBtn.one('span#minutes').set('textContent', hm.pad(window.parseInt(hm.countdownSeconds / 60, 10)));
 
-        if (cm.countdownSeconds === 0) {
+        if (hm.countdownSeconds === 0) {
             cm.startStopBtn.simulate('click');
-        }
-    },
-
-    // Generates link to recorded annotation to be inserted.
-    create_annotation: function(type, recording_url) {
-        var linkText = window.prompt(M.util.get_string('annotationprompt', 'atto_recordrtc'),
-                                     M.util.get_string('annotation:' + type, 'atto_recordrtc'));
-
-        // Return HTML for annotation link, if user did not press "Cancel".
-        if (!linkText) {
-            return undefined;
-        } else {
-            var annotation = '<a target="_blank" href="' + recording_url + '">' + linkText + '</a>';
-            return annotation;
-        }
-    },
-
-    // Inserts link to annotation in editor text area.
-    insert_annotation: function(type, recording_url) {
-        var annotation = cm.create_annotation(type, recording_url);
-
-        // Insert annotation link.
-        // If user pressed "Cancel", just go back to main recording screen.
-        if (!annotation) {
-            cm.uploadBtn.set('textContent', M.util.get_string('attachrecording', 'atto_recordrtc'));
-        } else {
-            cm.editorScope.setLink(cm.editorScope, annotation);
         }
     }
 };
@@ -347,8 +315,9 @@ M.atto_recordrtc.commonmodule = {
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
-// Shorten access to M.atto_recordrtc.commonmodule namespace.
+// Shorten access to module namespaces.
 var cm = M.atto_recordrtc.commonmodule;
+var hm = M.atto_recordrtc.helpermodule;
 
 M.atto_recordrtc.audiomodule = {
     init: function(scope) {
@@ -363,7 +332,7 @@ M.atto_recordrtc.audiomodule = {
         cm.recType = 'audio';
         cm.olderMoodle = scope.get('oldermoodle');
         // Extract the numbers from the string, and convert to bytes.
-        cm.maxUploadSize = window.parseInt(scope.get('maxrecsize').match(/\d+/)[0], 10) * Math.pow(1024, 2);
+        hm.maxUploadSize = window.parseInt(scope.get('maxrecsize').match(/\d+/)[0], 10) * Math.pow(1024, 2);
 
         // Show alert and redirect user if connection is not secure.
         cm.check_secure();
@@ -388,8 +357,8 @@ M.atto_recordrtc.audiomodule = {
                 }
 
                 // Empty the array containing the previously recorded chunks.
-                cm.chunks = [];
-                cm.blobSize = 0;
+                hm.chunks = [];
+                hm.blobSize = 0;
 
                 // Initialize common configurations.
                 var commonConfig = {
@@ -398,7 +367,7 @@ M.atto_recordrtc.audiomodule = {
                         // Make audio stream available at a higher level by making it a property of the common module.
                         cm.stream = stream;
 
-                        cm.start_recording(cm.recType, cm.stream);
+                        hm.start_recording(cm.recType, cm.stream);
                     },
 
                     // Revert button to "Record Again" when recording is stopped.
@@ -460,7 +429,7 @@ M.atto_recordrtc.audiomodule = {
                 M.atto_recordrtc.audiomodule.capture_audio(commonConfig);
             } else { // If button is displaying "Stop Recording".
                 // First of all clears the countdownTicker.
-                window.clearInterval(cm.countdownTicker);
+                window.clearInterval(hm.countdownTicker);
 
                 // Disable "Record Again" button for 1s to allow background processing (closing streams).
                 window.setTimeout(function() {
@@ -510,51 +479,6 @@ M.atto_recordrtc.audiomodule = {
         stream.getTracks().forEach(function(track) {
             track.stop();
         });
-
-        // Set source of audio player.
-        var blob = new window.Blob(cm.chunks, {type: cm.mediaRecorder.mimeType});
-        cm.player.set('src', window.URL.createObjectURL(blob));
-
-        // Show audio player with controls enabled, and unmute.
-        cm.player.set('muted', false);
-        cm.player.set('controls', true);
-        cm.player.ancestor().ancestor().removeClass('hide');
-
-        // Show upload button.
-        cm.uploadBtn.ancestor().ancestor().removeClass('hide');
-        cm.uploadBtn.set('textContent', M.util.get_string('attachrecording', 'atto_recordrtc'));
-        cm.uploadBtn.set('disabled', false);
-
-        // Handle when upload button is clicked.
-        cm.uploadBtn.on('click', function() {
-            // Trigger error if no recording has been made.
-            if (!cm.player.get('src') || cm.chunks === []) {
-                cm.show_alert('norecordingfound');
-            } else {
-                cm.uploadBtn.set('disabled', true);
-
-                // Upload recording to server.
-                cm.upload_to_server(cm.recType, function(progress, fileURLOrError) {
-                    if (progress === 'ended') { // Insert annotation in text.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.insert_annotation(cm.recType, fileURLOrError);
-                    } else if (progress === 'upload-failed') { // Show error message in upload button.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent',
-                            M.util.get_string('uploadfailed', 'atto_recordrtc') + ' ' + fileURLOrError);
-                    } else if (progress === 'upload-failed-404') { // 404 error = File too large in Moodle.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent', M.util.get_string('uploadfailed404', 'atto_recordrtc'));
-                    } else if (progress === 'upload-aborted') {
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent',
-                            M.util.get_string('uploadaborted', 'atto_recordrtc') + ' ' + fileURLOrError);
-                    } else {
-                        cm.uploadBtn.set('textContent', progress);
-                    }
-                });
-            }
-        });
     }
 };
 // This file is part of Moodle - http://moodle.org/
@@ -595,8 +519,9 @@ M.atto_recordrtc.audiomodule = {
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
-// Shorten access to M.atto_recordrtc.commonmodule namespace.
+// Shorten access to module namespaces.
 var cm = M.atto_recordrtc.commonmodule;
+var hm = M.atto_recordrtc.helpermodule;
 
 M.atto_recordrtc.videomodule = {
     init: function(scope) {
@@ -611,7 +536,7 @@ M.atto_recordrtc.videomodule = {
         cm.recType = 'video';
         cm.olderMoodle = scope.get('oldermoodle');
         // Extract the numbers from the string, and convert to bytes.
-        cm.maxUploadSize = window.parseInt(scope.get('maxrecsize').match(/\d+/)[0], 10) * Math.pow(1024, 2);
+        hm.maxUploadSize = window.parseInt(scope.get('maxrecsize').match(/\d+/)[0], 10) * Math.pow(1024, 2);
 
         // Show alert and redirect user if connection is not secure.
         cm.check_secure();
@@ -635,8 +560,8 @@ M.atto_recordrtc.videomodule = {
                 }
 
                 // Empty the array containing the previously recorded chunks.
-                cm.chunks = [];
-                cm.blobSize = 0;
+                hm.chunks = [];
+                hm.blobSize = 0;
 
                 // Initialize common configurations.
                 var commonConfig = {
@@ -645,7 +570,7 @@ M.atto_recordrtc.videomodule = {
                         // Make video stream available at a higher level by making it a property of the common module.
                         cm.stream = stream;
 
-                        cm.start_recording(cm.recType, cm.stream);
+                        hm.start_recording(cm.recType, cm.stream);
                     },
 
                     // Revert button to "Record Again" when recording is stopped.
@@ -711,7 +636,7 @@ M.atto_recordrtc.videomodule = {
                 M.atto_recordrtc.videomodule.capture_audio_video(commonConfig);
             } else { // If button is displaying "Stop Recording".
                 // First of all clears the countdownTicker.
-                window.clearInterval(cm.countdownTicker);
+                window.clearInterval(hm.countdownTicker);
 
                 // Disable "Record Again" button for 1s to allow background processing (closing streams).
                 window.setTimeout(function() {
@@ -765,50 +690,6 @@ M.atto_recordrtc.videomodule = {
         // Stop each individual MediaTrack.
         stream.getTracks().forEach(function(track) {
             track.stop();
-        });
-
-        // Set source of video player.
-        var blob = new window.Blob(cm.chunks, {type: cm.mediaRecorder.mimeType});
-        cm.player.set('src', window.URL.createObjectURL(blob));
-
-        // Enable controls for video player, and unmute.
-        cm.player.set('muted', false);
-        cm.player.set('controls', true);
-
-        // Show upload button.
-        cm.uploadBtn.ancestor().ancestor().removeClass('hide');
-        cm.uploadBtn.set('textContent', M.util.get_string('attachrecording', 'atto_recordrtc'));
-        cm.uploadBtn.set('disabled', false);
-
-        // Handle when upload button is clicked.
-        cm.uploadBtn.on('click', function() {
-            // Trigger error if no recording has been made.
-            if (!cm.player.get('src') || cm.chunks === []) {
-                cm.show_alert('norecordingfound');
-            } else {
-                cm.uploadBtn.set('disabled', true);
-
-                // Upload recording to server.
-                cm.upload_to_server(cm.recType, function(progress, fileURLOrError) {
-                    if (progress === 'ended') { // Insert annotation in text.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.insert_annotation(cm.recType, fileURLOrError);
-                    } else if (progress === 'upload-failed') { // Show error message in upload button.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent',
-                            M.util.get_string('uploadfailed', 'atto_recordrtc') + ' ' + fileURLOrError);
-                    } else if (progress === 'upload-failed-404') { // 404 error = File too large in Moodle.
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent', M.util.get_string('uploadfailed404', 'atto_recordrtc'));
-                    } else if (progress === 'upload-aborted') {
-                        cm.uploadBtn.set('disabled', false);
-                        cm.uploadBtn.set('textContent',
-                            M.util.get_string('uploadaborted', 'atto_recordrtc') + ' ' + fileURLOrError);
-                    } else {
-                        cm.uploadBtn.set('textContent', progress);
-                    }
-                });
-            }
         });
     }
 };

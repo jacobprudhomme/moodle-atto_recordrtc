@@ -118,23 +118,24 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
         dialogue.after('visibleChange', function() {
             var closed = !dialogue.get('visible'),
                 premium = editor.get('premiumservice') === '1',
-                m = premium ? M.atto_recordrtc.premiumcommonmodule : M.atto_recordrtc.commonmodule;
+                cm = M.atto_recordrtc.commonmodule,
+                hm = premium ? M.atto_recordrtc.premiumhelpermodule : M.atto_recordrtc.helpermodule;
 
             if (closed) {
                 if (premium) {
                     // Disconnect the socket.
-                    m.socket.disconnect(true);
+                    cm.socket.disconnect(true);
                 } else {
                     // Clear the countdown timer.
-                    window.clearInterval(m.countdownTicker);
+                    window.clearInterval(hm.countdownTicker);
                 }
 
-                if (m.mediaRecorder && m.mediaRecorder.state !== 'inactive') {
-                    m.mediaRecorder.stop();
+                if (cm.mediaRecorder && cm.mediaRecorder.state !== 'inactive') {
+                    cm.mediaRecorder.stop();
                 }
 
-                if (m.stream) {
-                    m.stream.getTracks().forEach(function(track) {
+                if (cm.stream) {
+                    cm.stream.getTracks().forEach(function(track) {
                         if (track.readyState !== 'ended') {
                             track.stop();
                         }
