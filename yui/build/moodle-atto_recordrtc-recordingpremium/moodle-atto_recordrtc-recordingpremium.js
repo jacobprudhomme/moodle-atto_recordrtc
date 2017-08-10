@@ -34,7 +34,6 @@ YUI.add('moodle-atto_recordrtc-recordingpremium', function (Y, NAME) {
 
 // Scrutinizer CI directives.
 /** global: M */
-/** global: Y */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
