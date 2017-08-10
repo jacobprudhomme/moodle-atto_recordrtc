@@ -53,7 +53,7 @@ M.atto_recordrtc.premiumhelpermodule = {
         hm.socket.connect();
 
         hm.socket.on('connect', function() {
-            // Send key and secret from Moodle settings
+            // Send key and secret from Moodle settings.
             hm.socket.emit('authentication', {
                 key: cm.editorScope.get('apikey'),
                 secret: cm.editorScope.get('apisecret')
