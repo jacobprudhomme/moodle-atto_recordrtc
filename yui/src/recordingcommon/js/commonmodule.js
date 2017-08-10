@@ -36,9 +36,6 @@
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
-// Shorten access to module namespaces.
-var cm = M.atto_recordrtc.commonmodule;
-
 M.atto_recordrtc.commonmodule = {
     // Unitialized variables to be used by the other modules.
     editorScope: null,
@@ -123,3 +120,7 @@ M.atto_recordrtc.commonmodule = {
         }
     }
 };
+
+// Shorten access to module namespaces.
+// THIS MUST BE PUT HERE AT THE END TO WORK, FOR REASONS UNKNOWN.
+var cm = M.atto_recordrtc.commonmodule;
