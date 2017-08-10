@@ -54,6 +54,22 @@ M.atto_recordrtc.premiumcommonmodule = {
     olderMoodle: null,
     socket: null,
 
+    // A helper for making a Moodle alert appear.
+    // Subject is the content of the alert (which error ther alert is for).
+    // Possibility to add on-alert-close event.
+    show_alert: function(subject, onCloseEvent) {
+        Y.use('moodle-core-notification-alert', function() {
+            var dialogue = new M.core.alert({
+                title: M.util.get_string(subject + '_title', 'atto_recordrtc'),
+                message: M.util.get_string(subject, 'atto_recordrtc')
+            });
+
+            if (onCloseEvent) {
+                dialogue.after('complete', onCloseEvent);
+            }
+        });
+    },
+
     // Notify and redirect user if plugin is used from insecure location.
     check_secure: function() {
         var isSecureOrigin = (window.location.protocol === 'https:') ||
@@ -78,6 +94,11 @@ M.atto_recordrtc.premiumcommonmodule = {
 
     // Attempt to connect to the premium server via Socket.io.
     init_connection: function() {
+        // Dialogue-closing behaviour.
+        var closeDialogue = function() {
+            pcm.editorScope.closeDialogue(pcm.editorScope);
+        };
+
         pcm.socket.connect();
 
         pcm.socket.on('connect', function() {
@@ -92,24 +113,14 @@ M.atto_recordrtc.premiumcommonmodule = {
             });
 
             pcm.socket.on('unauthorized', function(err) {
-                pcm.editorScope.closeDialogue(pcm.editorScope);
-                Y.use('moodle-core-notification-alert', function() {
-                    new M.core.alert({
-                        title: M.util.get_string('notpremium_title', 'atto_recordrtc'),
-                        message: M.util.get_string('notpremium', 'atto_recordrtc')
-                    });
-                });
+                pcm.show_alert('notpremium', closeDialogue);
             });
         });
 
         pcm.socket.on('connect_error', function() {
-            pcm.editorScope.closeDialogue(pcm.editorScope);
-            Y.use('moodle-core-notification-alert', function() {
-                new M.core.alert({
-                    title: M.util.get_string('servernotfound_title', 'atto_recordrtc'),
-                    message: M.util.get_string('servernotfound', 'atto_recordrtc')
-                });
-            });
+            pcm.socket.disconnect();
+
+            pcm.show_alert('servernotfound', closeDialogue);
         });
     },
 

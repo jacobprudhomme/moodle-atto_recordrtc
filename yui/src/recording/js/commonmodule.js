@@ -58,6 +58,22 @@ M.atto_recordrtc.commonmodule = {
     olderMoodle: null,
     maxUploadSize: null,
 
+    // A helper for making a Moodle alert appear.
+    // Subject is the content of the alert (which error ther alert is for).
+    // Possibility to add on-alert-close event.
+    show_alert: function(subject, onCloseEvent) {
+        Y.use('moodle-core-notification-alert', function() {
+            var dialogue = new M.core.alert({
+                title: M.util.get_string(subject + '_title', 'atto_recordrtc'),
+                message: M.util.get_string(subject, 'atto_recordrtc')
+            });
+
+            if (onCloseEvent) {
+                dialogue.after('complete', onCloseEvent);
+            }
+        });
+    },
+
     // Notify and redirect user if plugin is used from insecure location.
     check_secure: function() {
         var isSecureOrigin = (window.location.protocol === 'https:') ||
@@ -97,12 +113,7 @@ M.atto_recordrtc.commonmodule = {
             window.localStorage.setItem('alerted', 'true');
 
             cm.startStopBtn.simulate('click');
-            Y.use('moodle-core-notification-alert', function() {
-                new M.core.alert({
-                    title: M.util.get_string('nearingmaxsize_title', 'atto_recordrtc'),
-                    message: M.util.get_string('nearingmaxsize', 'atto_recordrtc')
-                });
-            });
+            cm.show_alert('nearingmaxsize');
         } else if ((cm.blobSize >= cm.maxUploadSize) && (window.localStorage.getItem('alerted') === 'true')) {
             window.localStorage.removeItem('alerted');
         } else {
