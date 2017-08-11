@@ -93,8 +93,7 @@ M.atto_recordrtc.commonmodule = {
 
     // Select best options for the recording codec and bitrate.
     best_rec_options: function(recType) {
-        var types = null,
-            options = null;
+        var types, options;
 
         if (recType === 'audio') {
             types = [
