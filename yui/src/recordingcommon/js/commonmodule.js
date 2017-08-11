@@ -100,7 +100,7 @@ M.atto_recordrtc.commonmodule = {
             ];
 
             options = {
-                audioBitsPerSecond: cm.editorScope.get('audiobitrate')
+                audioBitsPerSecond: window.parseInt(cm.editorScope.get('audiobitrate'))
             };
         } else {
             types = [
@@ -110,8 +110,8 @@ M.atto_recordrtc.commonmodule = {
             ];
 
             options = {
-                audioBitsPerSecond: cm.editorScope.get('audiobitrate'),
-                videoBitsPerSecond: cm.editorScope.get('videobitrate')
+                audioBitsPerSecond: window.parseInt(cm.editorScope.get('audiobitrate')),
+                videoBitsPerSecond: window.parseInt(cm.editorScope.get('videobitrate'))
             };
         }
 
@@ -119,7 +119,7 @@ M.atto_recordrtc.commonmodule = {
             return window.MediaRecorder.isTypeSupported(type);
         });
 
-        if (compatTypes !== []) {
+        if (compatTypes.length !== 0) {
             options.mimeType = compatTypes[0];
         }
 
