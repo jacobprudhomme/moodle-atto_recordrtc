@@ -31,10 +31,12 @@ YUI.add('moodle-atto_recordrtc-recordingcommon', function (Y, NAME) {
 /*jshint onevar: false */
 /*jshint shadow: true */
 /*global M */
+/*global tinyMCEPopup */
 
 // Scrutinizer CI directives.
 /** global: M */
 /** global: Y */
+/** global: tinyMCEPopup */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
@@ -87,6 +89,39 @@ M.atto_recordrtc.commonmodule = {
                 tinyMCEPopup.close();
             });
         }
+    },
+
+    // Select best options for the recording codec and bitrate.
+    best_rec_options: function(recType) {
+        if (recType === 'audio') {
+            var types = [
+                    'audio/webm;codecs=opus',
+                    'audio/ogg;codecs=opus'
+                ],
+                options = {
+                    audioBitsPerSecond: cm.editorScope.get('audiobitrate')
+                };
+        } else {
+            var types = [
+                    'video/webm;codecs=vp9,opus',
+                    'video/webm;codecs=h264,opus',
+                    'video/webm;codecs=vp8,opus'
+                ],
+                options = {
+                    audioBitsPerSecond: cm.editorScope.get('audiobitrate'),
+                    videoBitsPerSecond: cm.editorScope.get('videobitrate')
+                };
+        }
+
+        var compatTypes = types.filter(function(type) {
+            return window.MediaRecorder.isTypeSupported(type);
+        });
+
+        if (compatTypes !== []) {
+            options.mimeType = compatTypes[0];
+        }
+
+        return options;
     },
 
     // Notify and redirect user if plugin is used from insecure location.

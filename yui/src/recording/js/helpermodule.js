@@ -117,45 +117,9 @@ M.atto_recordrtc.helpermodule = {
 
     // Get everything set up to start recording.
     start_recording: function(type, stream) {
-        // The options for the recording codecs and bitrates.
-        var options = null;
-        if (type === 'audio') {
-            if (window.MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-                options = {
-                    audioBitsPerSecond: cm.editorScope.get('audiobitrate'),
-                    mimeType: 'audio/webm;codecs=opus'
-                };
-            } else if (window.MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-                options = {
-                    audioBitsPerSecond: cm.editorScope.get('audiobitrate'),
-                    mimeType: 'audio/ogg;codecs=opus'
-                };
-            }
-        } else {
-            if (window.MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
-                options = {
-                    audioBitsPerSecond: cm.editorScope.get('audiobitrate'),
-                    videoBitsPerSecond: cm.editorScope.get('videobitrate'),
-                    mimeType: 'video/webm;codecs=vp9,opus'
-                };
-            } else if (window.MediaRecorder.isTypeSupported('video/webm;codecs=h264,opus')) {
-                options = {
-                    audioBitsPerSecond: cm.editorScope.get('audiobitrate'),
-                    videoBitsPerSecond: cm.editorScope.get('videobitrate'),
-                    mimeType: 'video/webm;codecs=h264,opus'
-                };
-            } else if (window.MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
-                options = {
-                    audioBitsPerSecond: cm.editorScope.get('audiobitrate'),
-                    videoBitsPerSecond: cm.editorScope.get('videobitrate'),
-                    mimeType: 'video/webm;codecs=vp8,opus'
-                };
-            }
-        }
-
-        // If none of the options above are supported, fall back on browser defaults.
-        cm.mediaRecorder = options ? new window.MediaRecorder(stream, options)
-                                   : new window.MediaRecorder(stream);
+        // If none of the mime-types are supported, fall back on browser defaults.
+        var options = cm.best_rec_options(type);
+        cm.mediaRecorder = new window.MediaRecorder(stream, options);
 
         // Initialize MediaRecorder events and start recording.
         cm.mediaRecorder.ondataavailable = hm.handle_data_available;
