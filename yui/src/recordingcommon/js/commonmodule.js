@@ -66,6 +66,27 @@ M.atto_recordrtc.commonmodule = {
         });
     },
 
+
+    // Handle getUserMedia errors.
+    handle_gum_errors: function(error, commonConfig) {
+        var btnLabel = M.util.get_string('recordingfailed', 'tinymce_recordrtc'),
+            treatAsStopped = function() {
+                commonConfig.onMediaStopped(btnLabel);
+            };
+
+        // Changes 'CertainError' -> 'gumcertain' to match language string names.
+        var stringName = 'gum' + error.name.replace('Error', '').toLowerCase();
+
+        // After alert, proceed to treat as stopped recording, or close dialogue.
+        if (stringName !== 'gumsecurity') {
+            M.tinymce_recordrtc.show_alert(stringName, treatAsStopped);
+        } else {
+            M.tinymce_recordrtc.show_alert(stringName, function() {
+                tinyMCEPopup.close();
+            });
+        }
+    },
+
     // Notify and redirect user if plugin is used from insecure location.
     check_secure: function() {
         var isSecureOrigin = (window.location.protocol === 'https:') ||
