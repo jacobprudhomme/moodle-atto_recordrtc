@@ -96,18 +96,6 @@ M.atto_recordrtc.premiumhelpermodule = {
             cm.uploadBtn.set('disabled', false);
             cm.uploadBtn.set('textContent', M.util.get_string('attachrecording', 'atto_recordrtc'));
             cm.uploadBtn.ancestor().ancestor().removeClass('hide');
-
-            // Handle when upload button is clicked.
-            cm.uploadBtn.on('click', function() {
-                // Trigger error if no recording has been made.
-                if (!cm.player.get('src')) {
-                    cm.show_alert('norecordingfound');
-                } else {
-                    cm.uploadBtn.set('disabled', true);
-
-                    cm.insert_annotation(cm.recType, cm.player.get('src'));
-                }
-            });
         });
     },
 

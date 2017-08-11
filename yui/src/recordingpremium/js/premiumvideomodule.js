@@ -128,6 +128,20 @@ M.atto_recordrtc.premiumvideomodule = {
                 }
             }
         });
+
+        // Handle when upload button is clicked.
+        cm.uploadBtn.on('click', function() {
+            // Trigger error if no recording has been made.
+            if (!cm.player.get('src')) {
+                cm.show_alert('norecordingfound');
+            } else {
+                cm.uploadBtn.set('disabled', true);
+
+                hm.socket.emit('recording uploaded');
+
+                cm.insert_annotation(cm.recType, cm.player.get('src'));
+            }
+        });
     },
 
     // Setup to get audio+video stream from microphone/webcam.
