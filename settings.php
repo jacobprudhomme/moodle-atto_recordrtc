@@ -45,21 +45,21 @@ if ($ADMIN->fulltree) {
     $name = get_string('audiobitrate', 'atto_recordrtc');
     $desc = get_string('audiobitrate_desc', 'atto_recordrtc');
     $default = '128000';
-    $setting = new admin_setting_configtext('atto_recordrtc/audiobitrate', $name, $desc, $default, PARAM_RAW, 8);
+    $setting = new admin_setting_configtext('atto_recordrtc/audiobitrate', $name, $desc, $default, PARAM_INT, 8);
     $settings->add($setting);
 
     // Video bitrate.
     $name = get_string('videobitrate', 'atto_recordrtc');
     $desc = get_string('videobitrate_desc', 'atto_recordrtc');
     $default = '2500000';
-    $setting = new admin_setting_configtext('atto_recordrtc/videobitrate', $name, $desc, $default, PARAM_RAW, 8);
+    $setting = new admin_setting_configtext('atto_recordrtc/videobitrate', $name, $desc, $default, PARAM_INT, 8);
     $settings->add($setting);
 
     // Recording time limit.
     $name = get_string('timelimit', 'atto_recordrtc');
     $desc = get_string('timelimit_desc', 'atto_recordrtc');
     $default = '120';
-    $setting = new admin_setting_configtext('atto_recordrtc/timelimit', $name, $desc, $default, PARAM_RAW, 8);
+    $setting = new admin_setting_configtext('atto_recordrtc/timelimit', $name, $desc, $default, PARAM_INT, 8);
     $settings->add($setting);
 
     // Premium service yes-or-no.
@@ -75,14 +75,14 @@ if ($ADMIN->fulltree) {
     $name = get_string('serverurl', 'atto_recordrtc');
     $desc = get_string('serverurl_desc', 'atto_recordrtc');
     $default = '';
-    $setting = new admin_setting_configtext('atto_recordrtc/serverurl', $name, $desc, $default, PARAM_RAW, 20);
+    $setting = new admin_setting_configtext('atto_recordrtc/serverurl', $name, $desc, $default, PARAM_URL, 20);
     $settings->add($setting);
 
     // API key.
     $name = get_string('apikey', 'atto_recordrtc');
     $desc = get_string('apikey_desc', 'atto_recordrtc');
     $default = '';
-    $setting = new admin_setting_configtext('atto_recordrtc/apikey', $name, $desc, $default, PARAM_RAW, 32);
+    $setting = new admin_setting_configtext('atto_recordrtc/apikey', $name, $desc, $default, PARAM_TEXT, 32);
     $settings->add($setting);
 
     // API shared secret.
