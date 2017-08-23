@@ -49,21 +49,24 @@ M.atto_recordrtc.helpermodule = {
 
     // Add chunks of audio/video to array when made available.
     handle_data_available: function(event) {
+        // Push recording slice to array.
+        hm.chunks.push(event.data);
         // Size of all recorded data so far.
         hm.blobSize += event.data.size;
 
-        // Push recording slice to array.
         // If total size of recording so far exceeds max upload limit, stop recording.
         // An extra condition exists to avoid displaying alert twice.
-        if ((hm.blobSize >= hm.maxUploadSize) && (!window.localStorage.getItem('alerted'))) {
-            window.localStorage.setItem('alerted', 'true');
+        if (hm.blobSize >= hm.maxUploadSize) {
+            if (!window.localStorage.getItem('alerted')) {
+                window.localStorage.setItem('alerted', 'true');
 
-            cm.startStopBtn.simulate('click');
-            cm.show_alert('nearingmaxsize');
-        } else if ((hm.blobSize >= hm.maxUploadSize) && (window.localStorage.getItem('alerted') === 'true')) {
-            window.localStorage.removeItem('alerted');
-        } else {
-            hm.chunks.push(event.data);
+                cm.startStopBtn.simulate('click');
+                cm.show_alert('nearingmaxsize');
+            } else {
+                window.localStorage.removeItem('alerted');
+            }
+
+            hm.chunks.pop();
         }
     },
 
@@ -86,7 +89,7 @@ M.atto_recordrtc.helpermodule = {
         // Handle when upload button is clicked.
         cm.uploadBtn.on('click', function() {
             // Trigger error if no recording has been made.
-            if (!cm.player.get('src') || hm.chunks === []) {
+            if (hm.chunks.length === 0) {
                 cm.show_alert('norecordingfound');
             } else {
                 cm.uploadBtn.set('disabled', true);
@@ -157,27 +160,39 @@ M.atto_recordrtc.helpermodule = {
 
                 // Generate filename with random ID and file extension.
                 var fileName = (Math.random() * 1000).toString().replace('.', '');
-                if (type === 'audio') {
-                    fileName += '-audio.ogg';
-                } else {
-                    fileName += '-video.webm';
-                }
+                fileName += (type === 'audio') ? '-audio.ogg'
+                                               : '-video.webm';
 
                 // Create FormData to send to PHP upload/save script.
-                var formData = new window.FormData();
-                formData.append('contextid', cm.editorScope.get('contextid'));
-                formData.append('sesskey', cm.editorScope.get('sesskey'));
-                formData.append(type + '-filename', fileName);
-                formData.append(type + '-blob', blob);
+                var formData = new window.FormData(),
+                    filepickerOptions = cm.editorScope.get('host').get('filepickeroptions').link,
+                    repositoryKeys = window.Object.keys(filepickerOptions.repositories);
+
+                formData.append('repo_upload_file', blob, fileName);
+                formData.append('itemid', filepickerOptions.itemid);
+
+                for (var i = 0; i < repositoryKeys.length; i++) {
+                    if (filepickerOptions.repositories[repositoryKeys[i]].type === 'upload') {
+                        formData.append('repo_id', filepickerOptions.repositories[repositoryKeys[i]].id);
+                        break;
+                    }
+                }
+
+                formData.append('env', filepickerOptions.env);
+                formData.append('sesskey', M.cfg.sesskey);
+                formData.append('client_id', filepickerOptions.client_id);
+                formData.append('savepath', '/');
+                formData.append('ctx_id', filepickerOptions.context.id);
 
                 // Pass FormData to PHP script using XHR.
-                hm.make_xmlhttprequest(cm.editorScope.get('recordrtcroot') + 'save.php', formData,
+                var uploadEndpoint = M.cfg.wwwroot + '/repository/repository_ajax.php?action=upload';
+                hm.make_xmlhttprequest(uploadEndpoint, formData,
                     function(progress, responseText) {
                         if (progress === 'upload-ended') {
-                            var initialURL = cm.editorScope.get('recordrtcroot') + 'uploads.php/';
-                            return callback('ended', initialURL + responseText);
+                            callback('ended', window.JSON.parse(responseText).url);
+                        } else {
+                            callback(progress);
                         }
-                        return callback(progress);
                     }
                 );
             }

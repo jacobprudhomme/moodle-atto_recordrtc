@@ -24,15 +24,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// JSHint directives.
-/*jshint es5: true */
-/*jshint onevar: false */
-/*jshint shadow: true */
-/*global M */
+ // ESLint directives.
+ /* eslint-disable camelcase, spaced-comment */
 
-// Scrutinizer CI directives.
-/** global: M */
-/** global: Y */
+ // Scrutinizer CI directives.
+ /** global: M */
+ /** global: Y */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
@@ -58,6 +55,8 @@ M.atto_recordrtc.audiomodule = {
         // Extract the numbers from the string, and convert to bytes.
         hm.maxUploadSize = window.parseInt(scope.get('maxrecsize').match(/\d+/)[0], 10) * Math.pow(1024, 2);
 
+        // Show alert and close plugin if WebRTC is not supported.
+        cm.check_has_gum();
         // Show alert and redirect user if connection is not secure.
         cm.check_secure();
         // Show alert if using non-ideal browser.
@@ -160,8 +159,9 @@ M.atto_recordrtc.audiomodule = {
         cm.mediaRecorder.stop();
 
         // Stop each individual MediaTrack.
-        stream.getTracks().forEach(function(track) {
-            track.stop();
-        });
+        var tracks = stream.getTracks();
+        for (var i = 0; i < tracks.length; i++) {
+            tracks[i].stop();
+        }
     }
 };

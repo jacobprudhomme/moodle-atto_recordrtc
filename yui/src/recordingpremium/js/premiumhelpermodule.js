@@ -103,16 +103,13 @@ M.atto_recordrtc.premiumhelpermodule = {
     start_recording: function(type, stream) {
         // Generate filename with random ID and file extension.
         var fileName = (Math.random() * 1000).toString().replace('.', '');
-        if (type === 'audio') {
-            fileName += '-audio.ogg';
-        } else {
-            fileName += '-video.webm';
-        }
+        fileName += (type === 'audio') ? '-audio.ogg'
+                                       : '-video.webm';
 
         var data = {
             contextid: cm.editorScope.get('contextid'),
             type: cm.recType,
-            itemid: cm.editorScope.get('sesskey'), // Use session key as item ID.
+            itemid: M.cfg.sesskey, // Use session key as item ID.
             filename: fileName
         };
         hm.socket.emit('recording started', data);

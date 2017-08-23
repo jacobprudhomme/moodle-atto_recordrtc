@@ -24,17 +24,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// JSHint directives.
-/*jshint es5: true */
-/*jshint onevar: false */
-/*jshint shadow: true */
-/*global M */
-/*global tinyMCEPopup */
+ // ESLint directives.
+ /* eslint-disable camelcase, no-alert, spaced-comment */
 
-// Scrutinizer CI directives.
-/** global: M */
-/** global: Y */
-/** global: tinyMCEPopup */
+ // JSHint directives.
+ /*global M */
+ /*jshint es5: true */
+ /*jshint onevar: false */
+ /*jshint shadow: true */
+
+ // Scrutinizer CI directives.
+ /** global: M */
+ /** global: Y */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
@@ -71,7 +72,7 @@ M.atto_recordrtc.commonmodule = {
 
     // Handle getUserMedia errors.
     handle_gum_errors: function(error, commonConfig) {
-        var btnLabel = M.util.get_string('recordingfailed', 'tinymce_recordrtc'),
+        var btnLabel = M.util.get_string('recordingfailed', 'atto_recordrtc'),
             treatAsStopped = function() {
                 commonConfig.onMediaStopped(btnLabel);
             };
@@ -81,10 +82,10 @@ M.atto_recordrtc.commonmodule = {
 
         // After alert, proceed to treat as stopped recording, or close dialogue.
         if (stringName !== 'gumsecurity') {
-            M.tinymce_recordrtc.show_alert(stringName, treatAsStopped);
+            cm.show_alert(stringName, treatAsStopped);
         } else {
-            M.tinymce_recordrtc.show_alert(stringName, function() {
-                tinyMCEPopup.close();
+            cm.show_alert(stringName, function() {
+                cm.editorScope.closeDialogue(cm.editorScope);
             });
         }
     },
@@ -98,7 +99,6 @@ M.atto_recordrtc.commonmodule = {
                 'audio/webm;codecs=opus',
                 'audio/ogg;codecs=opus'
             ];
-
             options = {
                 audioBitsPerSecond: window.parseInt(cm.editorScope.get('audiobitrate'))
             };
@@ -108,7 +108,6 @@ M.atto_recordrtc.commonmodule = {
                 'video/webm;codecs=h264,opus',
                 'video/webm;codecs=vp8,opus'
             ];
-
             options = {
                 audioBitsPerSecond: window.parseInt(cm.editorScope.get('audiobitrate')),
                 videoBitsPerSecond: window.parseInt(cm.editorScope.get('videobitrate'))
@@ -126,12 +125,25 @@ M.atto_recordrtc.commonmodule = {
         return options;
     },
 
+    // Show alert and close plugin if browser does not support WebRTC at all.
+    check_has_gum: function() {
+        if (!(navigator.mediaDevices && window.MediaRecorder)) {
+            cm.show_alert('nowebrtc', function() {
+                cm.editorScope.closeDialogue(cm.editorScope);
+            });
+        }
+    },
+
     // Notify and redirect user if plugin is used from insecure location.
     check_secure: function() {
         var isSecureOrigin = (window.location.protocol === 'https:') ||
                              (window.location.host.indexOf('localhost') !== -1);
 
-        if (!isSecureOrigin) {
+        if (!isSecureOrigin && (window.bowser.chrome || window.bowser.opera)) {
+            cm.show_alert('gumsecurity', function() {
+                cm.editorScope.closeDialogue(cm.editorScope);
+            });
+        } else if (!isSecureOrigin) {
             cm.alertDanger.ancestor().ancestor().removeClass('hide');
         }
     },

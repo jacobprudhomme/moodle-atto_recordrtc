@@ -24,15 +24,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// JSHint directives.
-/*jshint es5: true */
-/*jshint onevar: false */
-/*jshint shadow: true */
-/*global M */
+ // ESLint directives.
+ /* eslint-disable camelcase, spaced-comment */
 
-// Scrutinizer CI directives.
-/** global: M */
-/** global: Y */
+ // Scrutinizer CI directives.
+ /** global: M */
+ /** global: Y */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
@@ -57,6 +54,8 @@ M.atto_recordrtc.premiumvideomodule = {
         cm.olderMoodle = scope.get('oldermoodle');
         hm.socket = window.io(cm.editorScope.get('serverurl'));
 
+        // Show alert and close plugin if WebRTC is not supported.
+        cm.check_has_gum();
         // Show alert and redirect user if connection is not secure.
         cm.check_secure();
         // Show alert if using non-ideal browser.
@@ -131,16 +130,12 @@ M.atto_recordrtc.premiumvideomodule = {
 
         // Handle when upload button is clicked.
         cm.uploadBtn.on('click', function() {
-            // Trigger error if no recording has been made.
-            if (!cm.player.get('src')) {
-                cm.show_alert('norecordingfound');
-            } else {
-                cm.uploadBtn.set('disabled', true);
+            // Currently no way to check if no recording has been made.
+            cm.uploadBtn.set('disabled', true);
 
-                hm.socket.emit('recording uploaded');
+            hm.socket.emit('recording uploaded');
 
-                cm.insert_annotation(cm.recType, cm.player.get('src'));
-            }
+            cm.insert_annotation(cm.recType, cm.player.get('src'));
         });
     },
 
@@ -177,8 +172,9 @@ M.atto_recordrtc.premiumvideomodule = {
         cm.mediaRecorder.stop();
 
         // Stop each individual MediaTrack.
-        stream.getTracks().forEach(function(track) {
-            track.stop();
-        });
+        var tracks = stream.getTracks();
+        for (var i = 0; i < tracks.length; i++) {
+            tracks[i].stop();
+        }
     }
 };
