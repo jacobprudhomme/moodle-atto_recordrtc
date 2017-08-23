@@ -33,6 +33,7 @@
 /*jshint onevar: false */
 
 // Scrutinizer CI directives.
+/** global: navigator */
 /** global: M */
 /** global: Y */
 
@@ -138,12 +139,14 @@ M.atto_recordrtc.commonmodule = {
         var isSecureOrigin = (window.location.protocol === 'https:') ||
                              (window.location.host.indexOf('localhost') !== -1);
 
-        if (!isSecureOrigin && (window.bowser.chrome || window.bowser.opera)) {
-            cm.show_alert('gumsecurity', function() {
-                cm.editorScope.closeDialogue(cm.editorScope);
-            });
-        } else if (!isSecureOrigin) {
+        if (!isSecureOrigin) {
             cm.alertDanger.ancestor().ancestor().removeClass('hide');
+
+            if (window.bowser.chrome || window.bowser.opera) {
+                cm.show_alert('gumsecurity', function() {
+                    cm.editorScope.closeDialogue(cm.editorScope);
+                });
+            }
         }
     },
 
