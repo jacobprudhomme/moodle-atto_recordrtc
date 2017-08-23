@@ -24,11 +24,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// ESLint directives.
+/* eslint-disable camelcase, spaced-comment */
+
 // JSHint directives.
-/*jshint es5: true */
-/*jshint onevar: false */
-/*jshint shadow: true */
 /*global M */
+/*jshint onevar: false, shadow: true */
 
 // Scrutinizer CI directives.
 /** global: M */

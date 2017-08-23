@@ -36,10 +36,12 @@
  * @extends M.editor_atto.EditorPlugin
  */
 
+// ESLint directives.
+/* eslint-disable camelcase, spaced-comment */
+
 // JSHint directives.
-/*jshint multistr: true */
-/*jshint onevar: false */
 /*global M */
+/*jshint onevar: false */
 
 // Scrutinizer CI directives.
 /** global: Y */
@@ -98,68 +100,74 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
     _lang: 'en',
 
     initializer: function() {
-        // Add audio and/or video buttons depending on the settings.
-        var allowedtypes = this.get('allowedtypes');
-        if (allowedtypes === 'both' || allowedtypes === 'audio') {
-            this._addButton('audio', this._audio);
-        }
-        if (allowedtypes === 'both' || allowedtypes === 'video') {
-            this._addButton('video', this._video);
-        }
-
-        // Initialize the dialogue box.
-        var dialogue = this.getDialogue({
-            width: 1000,
-            focusAfterHide: null
-        });
-
-        // If dialogue is closed during recording, do the following.
-        var editor = this;
-        dialogue.after('visibleChange', function() {
-            var closed = !dialogue.get('visible'),
-                premium = editor.get('premiumservice') === '1',
-                cm = M.atto_recordrtc.commonmodule,
-                hm = premium ? M.atto_recordrtc.premiumhelpermodule : M.atto_recordrtc.helpermodule;
-
-            if (closed) {
-                if (premium) {
-                    // Disconnect the socket.
-                    hm.socket.disconnect(true);
-                } else {
-                    // Clear the countdown timer.
-                    window.clearInterval(hm.countdownTicker);
-                }
-
-                if (cm.mediaRecorder && cm.mediaRecorder.state !== 'inactive') {
-                    cm.mediaRecorder.stop();
-                }
-
-                if (cm.stream) {
-                    cm.stream.getTracks().forEach(function(track) {
-                        if (track.readyState !== 'ended') {
-                            track.stop();
-                        }
-                    });
-                }
+        if (this.get('host').canShowFilepicker('media')) {
+            // Add audio and/or video buttons depending on the settings.
+            var allowedtypes = this.get('allowedtypes');
+            if (allowedtypes === 'both' || allowedtypes === 'audio') {
+                this._addButton('audio', this._audio);
             }
-        });
+            if (allowedtypes === 'both' || allowedtypes === 'video') {
+                this._addButton('video', this._video);
+            }
 
-        // Require Bowser, adapter.js and Socket.io libraries.
-        require(['atto_recordrtc/bowser'], function(bowser) {
-            window.bowser = bowser;
-        });
-        require(['atto_recordrtc/adapter'], function(adapter) {
-            window.adapter = adapter;
-        });
-        require(['atto_recordrtc/socket.io'], function(io) {
-            window.io = io;
-        });
+            // Initialize the dialogue box.
+            var dialogue = this.getDialogue({
+                width: 1000,
+                focusAfterHide: null
+            });
+
+            // If dialogue is closed during recording, do the following.
+            var editor = this;
+            dialogue.after('visibleChange', function() {
+                var closed = !dialogue.get('visible'),
+                    premium = editor.get('premiumservice') === '1',
+                    cm = M.atto_recordrtc.commonmodule,
+                    hm = premium ? M.atto_recordrtc.premiumhelpermodule
+                                 : M.atto_recordrtc.helpermodule;
+
+                if (closed) {
+                    if (premium) {
+                        // Disconnect the socket.
+                        hm.socket.disconnect(true);
+                    } else {
+                        // Clear the countdown timer.
+                        window.clearInterval(hm.countdownTicker);
+                    }
+
+                    if (cm.mediaRecorder && cm.mediaRecorder.state !== 'inactive') {
+                        cm.mediaRecorder.stop();
+                    }
+
+                    if (cm.stream) {
+                        var tracks = cm.stream.getTracks();
+                        for (var i = 0; i < tracks.length; i++) {
+                            if (tracks[i].readyState !== 'ended') {
+                                tracks[i].stop();
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Require Bowser, adapter.js and Socket.io libraries.
+            require(['atto_recordrtc/bowser'], function(bowser) {
+                window.bowser = bowser;
+            });
+            require(['atto_recordrtc/adapter'], function(adapter) {
+                window.adapter = adapter;
+            });
+            require(['atto_recordrtc/socket.io'], function(io) {
+                window.io = io;
+            });
+        }
     },
 
     /**
      * Add the buttons to the Atto toolbar.
      *
      * @method _addButton
+     * @param {string} type Type of button to add.
+     * @param {callback} callback Function to be launched on button click.
      * @private
      */
     _addButton: function(type, callback) {
@@ -183,7 +191,7 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
     _audio: function() {
         var dialogue = this.getDialogue();
 
-        dialogue.set('height', 260);
+        dialogue.set('height', 400);
         dialogue.set('headerContent', M.util.get_string('audiortc', 'atto_recordrtc'));
         dialogue.set('bodyContent', this._createContent('audio'));
 
@@ -205,7 +213,7 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
     _video: function() {
         var dialogue = this.getDialogue();
 
-        dialogue.set('height', 700);
+        dialogue.set('height', 850);
         dialogue.set('headerContent', M.util.get_string('videortc', 'atto_recordrtc'));
         dialogue.set('bodyContent', this._createContent('video'));
 
@@ -222,6 +230,8 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
      * Create the HTML to be displayed in the dialogue box
      *
      * @method _createContent
+     * @param {string} type Type of recording layout to generate.
+     * @returns {string} Compiled Handlebars template.
      * @private
      */
     _createContent: function(type) {
@@ -257,7 +267,7 @@ Y.namespace('M.atto_recordrtc').Button = Y.Base.create('button', Y.M.editor_atto
      * Close the dialogue without further action.
      *
      * @method closeDialogue
-     * @param {Object} scope The "this" context of the editor.
+     * @param {object} scope The "this" context of the editor.
      */
     closeDialogue: function(scope) {
         scope.getDialogue().hide();

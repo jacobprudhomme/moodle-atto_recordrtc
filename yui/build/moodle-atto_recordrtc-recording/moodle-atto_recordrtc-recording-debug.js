@@ -26,11 +26,12 @@ YUI.add('moodle-atto_recordrtc-recording', function (Y, NAME) {
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// ESLint directives.
+/* eslint-disable camelcase, spaced-comment */
+
 // JSHint directives.
-/*jshint es5: true */
-/*jshint onevar: false */
-/*jshint shadow: true */
 /*global M */
+/*jshint onevar: false, shadow: true */
 
 // Scrutinizer CI directives.
 /** global: M */
@@ -282,12 +283,12 @@ M.atto_recordrtc.helpermodule = {
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- // ESLint directives.
- /* eslint-disable camelcase, spaced-comment */
+// ESLint directives.
+/* eslint-disable camelcase */
 
- // Scrutinizer CI directives.
- /** global: M */
- /** global: Y */
+// Scrutinizer CI directives.
+/** global: M */
+/** global: Y */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
@@ -449,12 +450,12 @@ M.atto_recordrtc.audiomodule = {
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- // ESLint directives.
- /* eslint-disable camelcase, spaced-comment */
+// ESLint directives.
+/* eslint-disable camelcase */
 
- // Scrutinizer CI directives.
- /** global: M */
- /** global: Y */
+// Scrutinizer CI directives.
+/** global: M */
+/** global: Y */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 

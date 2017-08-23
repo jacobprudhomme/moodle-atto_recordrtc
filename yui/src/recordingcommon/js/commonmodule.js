@@ -24,18 +24,17 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- // ESLint directives.
- /* eslint-disable camelcase, no-alert, spaced-comment */
+// ESLint directives.
+/* eslint-disable camelcase, no-alert, spaced-comment */
 
- // JSHint directives.
- /*global M */
- /*jshint es5: true */
- /*jshint onevar: false */
- /*jshint shadow: true */
+// JSHint directives.
+/*jshint es5: true */
+/*global M */
+/*jshint onevar: false */
 
- // Scrutinizer CI directives.
- /** global: M */
- /** global: Y */
+// Scrutinizer CI directives.
+/** global: M */
+/** global: Y */
 
 M.atto_recordrtc = M.atto_recordrtc || {};
 
