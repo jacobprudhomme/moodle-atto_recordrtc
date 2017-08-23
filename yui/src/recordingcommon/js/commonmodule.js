@@ -167,6 +167,17 @@ M.atto_recordrtc.commonmodule = {
         window.navigator.mediaDevices.getUserMedia(mediaConstraints).then(successCallback).catch(errorCallback);
     },
 
+    stop_recording: function(stream) {
+        // Stop recording microphone stream.
+        cm.mediaRecorder.stop();
+
+        // Stop each individual MediaTrack.
+        var tracks = stream.getTracks();
+        for (var i = 0; i < tracks.length; i++) {
+            tracks[i].stop();
+        }
+    },
+
     // Generates link to recorded annotation to be inserted.
     create_annotation: function(type, recording_url) {
         var linkText = window.prompt(M.util.get_string('annotationprompt', 'atto_recordrtc'),
