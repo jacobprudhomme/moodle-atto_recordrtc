@@ -26,8 +26,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-const MOODLE_ATTO_RECORDRTC_ROOT = '/lib/editor/atto/plugins/recordrtc/';
-
 /**
  * Set params for this plugin.
  *
@@ -38,7 +36,7 @@ const MOODLE_ATTO_RECORDRTC_ROOT = '/lib/editor/atto/plugins/recordrtc/';
 function atto_recordrtc_params_for_js($elementid, $options, $fpoptions) {
     global $CFG;
 
-    $moodleversion = get_moodle_version_major();
+    $moodleversion = $CFG->version;
     $moodle32 = '2016120500';
     $moodle33 = '2017051500';
 
@@ -64,7 +62,7 @@ function atto_recordrtc_params_for_js($elementid, $options, $fpoptions) {
     }
     $params = array('contextid' => $context->id,
                     'sesskey' => $sesskey,
-                    'recordrtcroot' => $CFG->wwwroot.MOODLE_ATTO_RECORDRTC_ROOT,
+                    'recordrtcroot' => $CFG->wwwroot.'/lib/editor/atto/plugins/recordrtc/',
                     'allowedtypes' => $allowedtypes,
                     'audiobitrate' => $audiobitrate,
                     'videobitrate' => $videobitrate,
@@ -88,47 +86,51 @@ function atto_recordrtc_params_for_js($elementid, $options, $fpoptions) {
 function atto_recordrtc_strings_for_js() {
     global $PAGE;
 
-    $PAGE->requires->strings_for_js(array('audiortc',
-                                          'videortc',
-                                          'gumabort_title',
-                                          'gumabort',
-                                          'gumnotallowed_title',
-                                          'gumnotallowed',
-                                          'gumnotfound_title',
-                                          'gumnotfound',
-                                          'gumnotreadable_title',
-                                          'gumnotreadable',
-                                          'gumoverconstrained_title',
-                                          'gumoverconstrained',
-                                          'gumsecurity_title',
-                                          'gumsecurity',
-                                          'gumtype_title',
-                                          'gumtype',
-                                          'insecurealert_title',
-                                          'insecurealert',
-                                          'browseralert_title',
-                                          'browseralert',
-                                          'startrecording',
-                                          'recordagain',
-                                          'stoprecording',
-                                          'recordingfailed',
-                                          'attachrecording',
-                                          'norecordingfound_title',
-                                          'norecordingfound',
-                                          'nearingmaxsize_title',
-                                          'nearingmaxsize',
-                                          'notpremium_title',
-                                          'notpremium',
-                                          'servernotfound_title',
-                                          'servernotfound',
-                                          'uploadprogress',
-                                          'uploadfailed',
-                                          'uploadfailed404',
-                                          'uploadaborted',
-                                          'annotationprompt',
-                                          'annotation:audio',
-                                          'annotation:video'),
-                                    'atto_recordrtc');
+    $strings = array('audiortc',
+                     'videortc',
+                     'nowebrtc_title',
+                     'nowebrtc',
+                     'gumabort_title',
+                     'gumabort',
+                     'gumnotallowed_title',
+                     'gumnotallowed',
+                     'gumnotfound_title',
+                     'gumnotfound',
+                     'gumnotreadable_title',
+                     'gumnotreadable',
+                     'gumoverconstrained_title',
+                     'gumoverconstrained',
+                     'gumsecurity_title',
+                     'gumsecurity',
+                     'gumtype_title',
+                     'gumtype',
+                     'insecurealert_title',
+                     'insecurealert',
+                     'browseralert_title',
+                     'browseralert',
+                     'startrecording',
+                     'recordagain',
+                     'stoprecording',
+                     'recordingfailed',
+                     'attachrecording',
+                     'norecordingfound_title',
+                     'norecordingfound',
+                     'nearingmaxsize_title',
+                     'nearingmaxsize',
+                     'notpremium_title',
+                     'notpremium',
+                     'servernotfound_title',
+                     'servernotfound',
+                     'uploadprogress',
+                     'uploadfailed',
+                     'uploadfailed404',
+                     'uploadaborted',
+                     'annotationprompt',
+                     'annotation:audio',
+                     'annotation:video'
+               );
+
+    $PAGE->requires->strings_for_js($strings, 'atto_recordrtc');
 }
 
 /**
@@ -139,16 +141,4 @@ function atto_recordrtc_get_fontawesome_icon_map() {
         'atto_recordrtc:i/audiortc' => 'fa-file-audio-o',
         'atto_recordrtc:i/videortc' => 'fa-file-video-o'
     ];
-}
-
-/**
- * Get Moodle version
- * @return string
- */
-function get_moodle_version_major() {
-    global $CFG;
-
-    $versionarray = explode('.', $CFG->version);
-
-    return $versionarray[0];
 }

@@ -1,7 +1,7 @@
 # RecordRTC Atto plugin for Moodle
 
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/blindsidenetworks/moodle-atto_recordrtc/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jacobprudhomme/moodle-atto_recordrtc/?branch=master)
-[![Build Status](https://scrutinizer-ci.com/g/blindsidenetworks/moodle-atto_recordrtc/badges/build.png?b=master)](https://scrutinizer-ci.com/g/jacobprudhomme/moodle-atto_recordrtc/build-status/master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/blindsidenetworks/moodle-atto_recordrtc/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/blindsidenetworks/moodle-atto_recordrtc/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/blindsidenetworks/moodle-atto_recordrtc/badges/build.png?b=master)](https://scrutinizer-ci.com/g/blindsidenetworks/moodle-atto_recordrtc/build-status/master)
 
 ### Features
 
@@ -71,7 +71,7 @@ The plugin can be configured during the initial install, and later by navigating
   ```
   define([], function() {
   ```
-  
+
   Or so (for Adapter.js):  
 
   *Old code*
